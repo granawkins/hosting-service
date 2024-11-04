@@ -8,6 +8,19 @@
         .form-group { margin-bottom: 15px; }
         input, button { padding: 5px; margin: 5px; }
         .site-list { margin-top: 20px; }
+        .preview-frame { 
+            width: 100%; 
+            height: 600px; 
+            border: 1px solid #ccc; 
+            margin-top: 20px; 
+            display: none; 
+        }
+        .screenshot {
+            max-width: 400px;
+            max-height: 400px;
+            object-fit: contain;
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -21,42 +34,11 @@
         <div class="site-list" id="siteList">
             Loading sites...
         </div>
+        <button id="screenshotButton" style="display: none;">Take Snapshot</button>
+        <img id="screenshot" class="screenshot" alt="Site Screenshot">
+        <iframe id="sitePreview" class="preview-frame" crossorigin="anonymous" allow="cross-origin-isolated"></iframe>
+
     </div>
-    <script>
-        async function loadSites() {
-            const response = await fetch('/api/active_sites');
-            const sites = await response.json();
-            const siteList = document.getElementById('siteList');
-            siteList.innerHTML = Object.entries(sites)
-                .map(([site, port]) => `
-                    <div>
-                        ${site} (Port: ${port})
-                        <button onclick="removeSite('${site}')">Stop</button>
-                    </div>
-                `).join('') || 'No active sites';
-        }
-
-        async function deploySite() {
-            const siteName = document.getElementById('siteName').value;
-            const port = document.getElementById('port').value;
-            await fetch('/api/deploy', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({site_name: siteName, port: parseInt(port)})
-            });
-            loadSites();
-        }
-
-        async function removeSite(siteName) {
-            await fetch('/api/remove', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({site_name: siteName})
-            });
-            loadSites();
-        }
-
-        loadSites();
-    </script>
+    <script src="static/script.js"></script>
 </body>
 </html>
