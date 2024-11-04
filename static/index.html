@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Site Manager</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .form-group { margin-bottom: 15px; }
+        input, button { padding: 5px; margin: 5px; }
+        .site-list { margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Site Manager</h1>
+        <div class="form-group">
+            <input type="text" id="siteName" placeholder="Site Name">
+            <input type="number" id="port" placeholder="Port">
+            <button onclick="deploySite()">Deploy</button>
+        </div>
+        <div class="site-list" id="siteList">
+            Loading sites...
+        </div>
+    </div>
+    <script>
+        async function loadSites() {
+            const response = await fetch('/api/active_sites');
+            const sites = await response.json();
+            const siteList = document.getElementById('siteList');
+            siteList.innerHTML = Object.entries(sites)
+                .map(([site, port]) => `
+                    <div>
+                        ${site} (Port: ${port})
+                        <button onclick="removeSite('${site}')">Stop</button>
+                    </div>
+                `).join('') || 'No active sites';
+        }
+
+        async function deploySite() {
+            const siteName = document.getElementById('siteName').value;
+            const port = document.getElementById('port').value;
+            await fetch('/api/deploy', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({site_name: siteName, port: parseInt(port)})
+            });
+            loadSites();
+        }
+
+        async function removeSite(siteName) {
+            await fetch('/api/remove', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({site_name: siteName})
+            });
+            loadSites();
+        }
+
+        loadSites();
+    </script>
+</body>
+</html>
